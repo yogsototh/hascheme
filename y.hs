@@ -8,6 +8,7 @@ data LispVal = Atom         String
              | List         [LispVal]
              | DottedList   [LispVal] LispVal
              | Number       Integer
+             | Character    Char
              | String       String
              | Bool         Bool
              deriving (Show)
@@ -17,6 +18,12 @@ symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
 
 spaces :: Parser ()
 spaces = skipMany1 space
+
+parseChar :: Parser LispVal
+parseChar = do
+    string "#\\"
+    c <- anyChar
+    return $ Character c
 
 parseString :: Parser LispVal
 parseString = do
@@ -102,6 +109,7 @@ parseNumber = do
 
 parseExpr :: Parser LispVal
 parseExpr = parseString
+        <|> try parseChar
         <|> parseNumber
         <|> parseAtom
 
