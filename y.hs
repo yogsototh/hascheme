@@ -21,14 +21,17 @@ spaces = skipMany1 space
 parseString :: Parser LispVal
 parseString = do
     char '"'
-    x <- many (    (char '\\' >> char 'n' >> return '\n')
-               <|> (char '\\' >> char 'r' >> return '\r')
-               <|> (char '\\' >> char 't' >> return '\t')
-               <|> (char '\\' >> anyChar)
-               <|> noneOf "\""
-               )
+    x <- many $ strSpecialChar <|> noneOf "\""
     char '"'
     return $ String x
+    where
+        strSpecialChar = char '\\' >> do
+            x <- anyChar
+            case x of
+                'n' -> return '\n'
+                't' -> return '\t'
+                'r' -> return '\r'
+                _   -> return x
 
 parseAtom :: Parser LispVal
 parseAtom = do
