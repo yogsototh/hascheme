@@ -14,7 +14,6 @@ data LispVal = Atom         String
              | Character    Char
              | String       String
              | Bool         Bool
-             deriving (Show)
 
 -- The program (in IO)
 -- execute the arguments given in parameters
@@ -28,7 +27,7 @@ main = do
 readExpr :: String -> String
 readExpr input = case parse parseExpr "lisp" input of
                     Left  err -> "No match: " ++ show err
-                    Right val -> showVal val
+                    Right val -> show val
 
 showVal :: LispVal -> String
 showVal (String contents) = "\"" ++ contents ++ "\""
@@ -38,6 +37,13 @@ showVal (Float contents) = show contents
 showVal (Character c) = '\'':c:'\'':[]
 showVal (Bool True) = "#t"
 showVal (Bool False) = "#f"
+showVal (List contents) = "(" ++ unwordsList contents ++ ")"
+showVal (DottedList head tail) = "(" ++ unwordsList head ++ " . " ++ showVal tail ++ ")"
+
+unwordsList :: [LispVal] -> String
+unwordsList = unwords . map showVal
+
+instance Show LispVal where show = showVal
 
 -- parseExpr will parse the Expression
 parseExpr :: Parser LispVal
