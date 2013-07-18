@@ -1,5 +1,6 @@
 module Main where
 
+import Control.Monad (liftM)
 import Data.List (foldl')
 import Text.ParserCombinators.Parsec hiding (spaces)
 import System.Environment   (getArgs)
@@ -36,6 +37,12 @@ parseExpr = parseString
         <|> try parseFloat  -- 3.1415
         <|> parseNumber     -- 3, #b011001, #o070, #d930, #xFF3
         <|> parseAtom       -- symbol-323
+        <|> parseQuoted
+        <|> do
+                char '('
+                x <- try parseList <|> parseDottedList
+                char ')'
+                return x
 
 symbol :: Parser Char
 symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
@@ -138,3 +145,19 @@ parseNumber = do
               <|> parseBaseSpecifiedNumber
     return (Number number)
 
+-- Recursive Parsers
+
+parseList :: Parser LispVal
+parseList = liftM List $ sepBy parseExpr spaces
+
+parseDottedList :: Parser LispVal
+parseDottedList = do
+    head <- endBy parseExpr spaces
+    tail <- char '.' >> spaces >> parseExpr
+    return $ DottedList head tail
+
+parseQuoted :: Parser LispVal
+parseQuoted = do
+    char '\''
+    x <- parseExpr
+    return $ List [Atom "quote", x]
