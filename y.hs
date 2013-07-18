@@ -4,14 +4,38 @@ import Data.List (foldl')
 import Text.ParserCombinators.Parsec hiding (spaces)
 import System.Environment   (getArgs)
 
+-- The possible LISP values
 data LispVal = Atom         String
              | List         [LispVal]
              | DottedList   [LispVal] LispVal
+             | Float        Float
              | Number       Integer
              | Character    Char
              | String       String
              | Bool         Bool
              deriving (Show)
+
+-- The program (in IO)
+-- execute the arguments given in parameters
+main :: IO ()
+main = do
+    args <- getArgs
+    putStrLn (readExpr (args !!0))
+
+-- ReadExpr will take a program as input
+-- and will return the result of a parseExpr
+readExpr :: String -> String
+readExpr input = case parse parseExpr "lisp" input of
+                    Left  err -> "No match: " ++ show err
+                    Right val -> show val
+
+-- parseExpr will parse the Expression
+parseExpr :: Parser LispVal
+parseExpr = parseString
+        <|> try parseChar   -- #\a #\b etc...
+        <|> try parseFloat  -- 3.1415
+        <|> parseNumber     -- 3, #b011001, #o070, #d930, #xFF3
+        <|> parseAtom       -- symbol-323
 
 symbol :: Parser Char
 symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
@@ -101,25 +125,16 @@ parseSimpleNumber = do
     numStr <- many1 digit
     return (read numStr)
 
+parseFloat :: Parser LispVal
+parseFloat = do
+    numBeforeDot <- many1 digit
+    char '.'
+    numAfterDot <- many1 digit
+    return $ Float (read (numBeforeDot ++ "." ++ numAfterDot))
+
 parseNumber :: Parser LispVal
 parseNumber = do
     number <-     parseSimpleNumber
               <|> parseBaseSpecifiedNumber
     return (Number number)
 
-parseExpr :: Parser LispVal
-parseExpr = parseString
-        <|> try parseChar
-        <|> parseNumber
-        <|> parseAtom
-
-
-readExpr :: String -> String
-readExpr input = case parse parseExpr "lisp" input of
-                    Left  err -> "No match: " ++ show err
-                    Right val -> show val
-
-main :: IO ()
-main = do
-    args <- getArgs
-    putStrLn (readExpr (args !!0))
