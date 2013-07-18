@@ -28,7 +28,16 @@ main = do
 readExpr :: String -> String
 readExpr input = case parse parseExpr "lisp" input of
                     Left  err -> "No match: " ++ show err
-                    Right val -> show val
+                    Right val -> showVal val
+
+showVal :: LispVal -> String
+showVal (String contents) = "\"" ++ contents ++ "\""
+showVal (Atom name) = name
+showVal (Number contents) = show contents
+showVal (Float contents) = show contents
+showVal (Character c) = '\'':c:'\'':[]
+showVal (Bool True) = "#t"
+showVal (Bool False) = "#f"
 
 -- parseExpr will parse the Expression
 parseExpr :: Parser LispVal

@@ -21,7 +21,7 @@ for input in $listfic; do
         (($?!=0)) && {done=1;continue}
         read <&3 expected
         (($?!=0)) && {done=1;continue}
-        result="$( runghc y.hs "$program")"
+        result="$(runghc y.hs "$program")"
         printf "%18s (line %3d): " ${input:t} $num
         if [[ $expected == $result ]]; then
             print -- "OK"

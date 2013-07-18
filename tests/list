@@ -1,4 +1,0 @@
-(a list)
-List [Atom "a",Atom "list"]
-(a (nested) list)
-List [Atom "a",List [Atom "nested"],Atom "list"]
