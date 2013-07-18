@@ -1,7 +1,16 @@
 #!/usr/bin/env zsh
 
+typeset -a listfic
+if (($#==0)); then
+    listfic=( tests/*(.N) )
+else
+    for arg in $@; do
+        listfic=( $listfic tests/$arg )
+    done
+fi
+
 tmpfic=tests/tmp
-for input in tests/*; do
+for input in $listfic; do
     sed 's/\\/\\\\/g' $input > $tmpfic
     # set 3 as the file descriptor for the file $tmpfic
     exec 3< $tmpfic
