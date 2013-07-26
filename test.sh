@@ -10,6 +10,18 @@ else
 fi
 
 tmpfic=tests/tmp
+
+
+if ((${#listfic}>1)); then
+    # compile
+    [[ ! -d .tmp ]] && mkdir .tmp
+    ghc -O2 -hidir .tmp -odir .tmp y.hs
+    cmd='./y'
+else
+    cmd=(runghc y.hs)
+fi
+
+# test
 for input in $listfic; do
     sed 's/\\/\\\\/g' $input > $tmpfic
     # set 3 as the file descriptor for the file $tmpfic
@@ -21,7 +33,7 @@ for input in $listfic; do
         (($?!=0)) && {done=1;continue}
         read <&3 expected
         (($?!=0)) && {done=1;continue}
-        result="$(runghc y.hs "$program")"
+        result="$($cmd "$program")"
         printf "%18s (line %3d): " ${input:t} $num
         if [[ $expected == $result ]]; then
             print -- "OK"

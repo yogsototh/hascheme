@@ -48,8 +48,8 @@ parseExpr :: Parser LispVal
 parseExpr = parseString
         <|> try parseChar   -- #\a #\b etc...
         <|> try parseFloat  -- 3.1415
-        <|> parseNumber     -- 3, #b011001, #o070, #d930, #xFF3
-        <|> parseAtom       -- symbol-323
+        <|> try parseNumber -- 3, #b011001, #o070, #d930, #xFF3
+        <|> try parseAtom   -- symbol-323
         <|> parseQuoted
         <|> do
                 char '('
@@ -90,8 +90,8 @@ parseAtom = do
     rest <- many (letter <|> digit <|> symbol)
     let atom = first:rest
     return $ case atom of
-                "#vrai" -> Bool True
-                "#faux" -> Bool False
+                "#t" -> Bool True
+                "#f" -> Bool False
                 _       -> Atom atom
 
 numFromBase n str = foldl' traiteNombre 0 str
