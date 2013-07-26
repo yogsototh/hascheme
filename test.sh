@@ -16,6 +16,7 @@ if ((${#listfic}>1)); then
     # compile
     [[ ! -d .tmp ]] && mkdir .tmp
     ghc -O2 -hidir .tmp -odir .tmp y.hs
+    (($?!=0)) && exit 1
     cmd='./y'
 else
     cmd=(runghc y.hs)

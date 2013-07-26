@@ -183,3 +183,66 @@ eval val@(Number _) = val
 eval val@(Float _) = val
 eval val@(Bool _) = val
 eval (List [Atom "quote", val]) = val
+
+-- strict evaluation here:
+eval (List (Atom func : args)) = apply func $ map eval args
+
+apply :: String -> [LispVal] -> LispVal
+apply func args = maybe (Bool False) ($ args) $ lookup func primitives
+
+primitives :: [(String, [LispVal] -> LispVal)]
+primitives =[ ("+", numericBinop (+))
+            , ("-", numericBinop (-))
+            , ("*", numericBinop (*))
+            , ("/", numericBinop div)
+            , ("mod", numericBinop mod)
+            , ("quotient", numericBinop quot)
+            , ("remainder", numericBinop rem)
+            , ("boolean?", isBool)
+            , ("string?", isString)
+            , ("number?", isNumber)
+            , ("float?", isFloat)
+            , ("character?", isCharacter)
+            , ("dottedlist?", isDottedList)
+            , ("list?", isList)
+            , ("symbol?", isAtom)
+            ]
+
+isBool :: [LispVal] -> LispVal
+isBool ((Bool _):_) = Bool True
+isBool _ = Bool False
+
+isString :: [LispVal] -> LispVal
+isString ((String _):_) = Bool True
+isString _ = Bool False
+
+isCharacter :: [LispVal] -> LispVal
+isCharacter ((Character _):_) = Bool True
+isCharacter _ = Bool False
+
+isNumber :: [LispVal] -> LispVal
+isNumber ((Number _):_) = Bool True
+isNumber _ = Bool False
+
+isFloat :: [LispVal] -> LispVal
+isFloat ((Float _):_) = Bool True
+isFloat _ = Bool False
+
+isDottedList :: [LispVal] -> LispVal
+isDottedList ((DottedList _ _):_) = Bool True
+isDottedList _ = Bool False
+
+isList :: [LispVal] -> LispVal
+isList ((List _):_) = Bool True
+isList _ = Bool False
+
+isAtom :: [LispVal] -> LispVal
+isAtom ((Atom _):_) = Bool True
+isAtom _ = Bool False
+
+numericBinop :: (Integer -> Integer -> Integer) -> [LispVal] -> LispVal
+numericBinop op params = Number $ foldl1 op $ map unpackNum params
+
+unpackNum :: LispVal -> Integer
+unpackNum (Number n) = n
+unpackNum _ = 0
