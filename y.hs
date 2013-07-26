@@ -18,16 +18,14 @@ data LispVal = Atom         String
 -- The program (in IO)
 -- execute the arguments given in parameters
 main :: IO ()
-main = do
-    args <- getArgs
-    putStrLn (readExpr (args !!0))
+main = getArgs >>= print . eval . readExpr . head
 
 -- ReadExpr will take a program as input
 -- and will return the result of a parseExpr
-readExpr :: String -> String
+readExpr :: String -> LispVal
 readExpr input = case parse parseExpr "lisp" input of
-                    Left  err -> "No match: " ++ show err
-                    Right val -> show val
+                    Left  err -> String $ "No match: " ++ show err
+                    Right val -> val
 
 showVal :: LispVal -> String
 showVal (String contents) = "\"" ++ contents ++ "\""
@@ -176,3 +174,12 @@ parseQuoted = do
     char '\''
     x <- parseExpr
     return $ List [Atom "quote", x]
+
+-- Evaluation
+eval :: LispVal -> LispVal
+eval val@(Character _) = val
+eval val@(String _) = val
+eval val@(Number _) = val
+eval val@(Float _) = val
+eval val@(Bool _) = val
+eval (List [Atom "quote", val]) = val
